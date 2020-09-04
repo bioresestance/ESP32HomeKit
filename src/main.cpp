@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include <service.h>
+#include <services/servicesCore.h>
 #include <esp_log.h>
 #include "string.h"
 
@@ -12,11 +12,6 @@ static Service testServices[] = {
     Service("Test Task 1"),
     Service("Test Task 2")
 };
-
-
-
-
-//ServiceList<sizeof(testServices)/sizeof(Service)> services(testServices);
 
 
 extern "C" void app_main() {
