@@ -16,7 +16,7 @@ static Service testServices[] = {
 
 
 
-ServiceList<sizeof(testServices)/sizeof(Service)> services(testServices);
+//ServiceList<sizeof(testServices)/sizeof(Service)> services(testServices);
 
 
 extern "C" void app_main() {
