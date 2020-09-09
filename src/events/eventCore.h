@@ -31,6 +31,7 @@ namespace event
 
 
 
+
     /**
      * @brief Main class to handle all events being passed around by services.
      * 
@@ -65,6 +66,18 @@ namespace event
         std::array<eventIdSubList, (size_t)EventID::NUM_EVENTS> eventSubList;
 
 
+        /**
+         * @brief Resets the entire Event list for each Event ID.
+         * 
+         */
+        void resetList();
+
+        /**
+         * @brief Resets the event list for only the specified Event ID.
+         * 
+         * @param id 
+         */
+        void resetList(EventID id);
 
 
 
