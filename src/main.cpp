@@ -4,6 +4,8 @@
 #include <esp_log.h>
 #include "string.h"
 
+#include <events/eventCore.h>
+
 using namespace std;
 
 
