@@ -10,10 +10,10 @@ using namespace std;
 
 
 
-static Service testServices[] = {
-    Service("Test Task 1"),
-    Service("Test Task 2")
-};
+// static Service testServices[] = {
+//     Service("Test Task 1"),
+//     Service("Test Task 2")
+// };
 
 
 extern "C" void app_main() {

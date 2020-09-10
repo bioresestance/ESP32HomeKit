@@ -2,10 +2,12 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
+#include <freertosTask.h>
 #include <events/eventID.h>
+#include <services/servicesCore.h>
 #include <array>
 
-namespace event
+namespace Event
 {
     //! Defines the max number of subscribers each event ID can have. 
     #define MAX_EVENT_SUBS      (10)
@@ -79,7 +81,39 @@ namespace event
          */
         void resetList(EventID id);
 
+        /**
+         * @brief Checks whether the queue handle is already registered to the Event ID.
+         * 
+         * @param handle Queue handle to check.
+         * @param event Event ID to check.
+         * @return true Handle already registered.
+         * @return false Handle not registered.
+         */
+        bool isQueueRegistered(QueueHandle_t& handle, EventID event); 
 
+        /**
+         * @brief Adds the Queue handle to the event ID list.
+         * 
+         * @param handle Queue handle to add to list.
+         * @param event Event ID to add the queue to.
+         * @return true Handle was added.
+         * @return false Handle was not added. Either no room, or already exists in list.
+         */
+        bool addQueuetoList(QueueHandle_t& handle, EventID event);
+
+    public:
+
+        /**
+         * @brief Registers a list of Event ID's to a queue.
+         * 
+         * @param handle Handle to the queue to register the list to.
+         * @param eventIdList Pointer to a list of Event ID's.
+         * @param numEventId  Number of event ID's in the list.
+         * @return Whether the registration was successful or not. 
+         */
+        bool registerList(QueueHandle_t& handle, EventID* eventIdList, uint16_t numEventId);
+
+ 
 
     };
 

@@ -1,4 +1,3 @@
-
 #include "servicesCore.h"
 
 
@@ -8,9 +7,4 @@ void Service::taskMain()
         ESP_LOGI( this->_taskName, "Testing");
         this->delay(1000);
     }
-}
-
-void Service::startService() 
-{
-    
 }
