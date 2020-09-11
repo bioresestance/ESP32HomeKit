@@ -92,6 +92,16 @@ namespace Event
         bool isQueueRegistered(QueueHandle_t& handle, EventID event); 
 
         /**
+         * @brief Get the Next Free Index in the provided list.
+         * 
+         * @param list List to search
+         * @param idx  Holds the result of the search.
+         * @return true If a spot was found. Result in idx.
+         * @return false If no spot was found.
+         */
+        bool getNextFreeIndex(eventIdSubList& list, uint16_t* idx);
+
+        /**
          * @brief Adds the Queue handle to the event ID list.
          * 
          * @param handle Queue handle to add to list.

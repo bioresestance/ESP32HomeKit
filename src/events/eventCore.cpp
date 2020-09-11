@@ -35,12 +35,33 @@ namespace Event
         return false;
     }
     
+    bool EventCore::getNextFreeIndex(eventIdSubList& list, uint16_t* idx) {
+
+        uint16_t i = 0;
+        for(QueueHandle_t& handle : list) {
+            // Search the array for the first available spot.
+            if(handle == nullptr) {
+                *idx = i;
+                return true;
+            }
+            i++;
+        }
+        return false;        
+    }
+    
     bool EventCore::addQueuetoList(QueueHandle_t& handle, EventID event) {
 
         eventIdSubList& list = eventSubList[static_cast<uint16_t>(event)];
 
+        // First ensure the queue is not already in the list.
         if(!isQueueRegistered(handle, event)) {
-                //for()
+                uint16_t idx = 0;
+                if(getNextFreeIndex(list, &idx)) {
+                    list[idx] = handle;
+                    return true;
+                } else {
+                    return false;
+                }
         } else {
             return false;
         }
@@ -55,7 +76,7 @@ namespace Event
 
         for(uint16_t idx = 0; idx < numEventId; idx++) {
             EventID id = eventIdList[idx];
-            
+            addQueuetoList(handle, id);
         }
         return true;
     }
