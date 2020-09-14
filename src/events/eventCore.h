@@ -4,7 +4,6 @@
 #include <freertos/queue.h>
 #include <freertosTask.h>
 #include <events/eventID.h>
-#include <services/servicesCore.h>
 #include <array>
 
 namespace Event
@@ -24,6 +23,11 @@ namespace Event
         uint32_t eventDataLength;   //!< Length of the event data. 0 for no data.
         void *eventData;            //!< Optional data to attach to the event.
     };
+
+    // struct eventRegList {
+    //     EventID* eventIDs;          //!< Pointer to a list 
+    //     uint16_t numEventIDs;
+    // };
 
 
     /**
@@ -57,7 +61,7 @@ namespace Event
             return eventCoreInstance;
         }
 
-        // Ensure we cant copy or assign a new instance.
+        // Ensure we can't copy or assign a new instance.
         EventCore(EventCore const&)       = delete;
         void operator=(EventCore const&)  = delete;
     /****************************************************************************************************/
@@ -122,6 +126,52 @@ namespace Event
          * @return Whether the registration was successful or not. 
          */
         bool registerList(QueueHandle_t& handle, EventID* eventIdList, uint16_t numEventId);
+
+         bool registerList(QueueHandle_t& handle, EventID* eventIdList, uint16_t numEventId);
+
+        /**
+         * @brief Post an Event with a payload.
+         * 
+         *  Posts a payload to an Event ID. The payload will be copied, so no need to 
+         *  keep the memory in scope. 
+         * 
+         * @param event ID of the event to post.
+         * @param payload Pointer to a payload to post with the event.
+         * @param payloadLength Length of the payload.
+         * @return true If the event was posted successfully.
+         * @return false If there was a problem posting the message, such as no memory available.
+         */
+        bool postEvent(EventID event, void* payload, uint16_t payloadLength);
+
+        /**
+         * @brief Post an Event without a payload.
+         * 
+         * @param event ID of the event to post.
+         * @return true If the post was successful.
+         * @return false If the post failed.
+         */
+        bool postEvent(EventID event);
+
+
+        /**
+         * @brief Gets any available Event for the service.
+         * 
+         * @param queue The queue to check for messages.
+         * @param eventMsg Holds the next available event message, if available. 
+         * @param msToWait Max number of ms to wait for a new event.
+         * @return true If a event was received in the wait period.
+         * @return false If there was no event before the wait period was over.
+         */
+        bool getEvent(QueueHandle_t& queue, const eventMessage * eventMsg, uint32_t msToWait); 
+
+        /**
+         * @brief Properly disposes of the memory of an event message.
+         * 
+         *  \note This must **Always** be called after a getEvent call to ensure no memory leaks.
+         * 
+         * @param eventMsg 
+         */
+        void disposeEvent(const eventMessage * eventMsg);
 
  
 
