@@ -4,13 +4,8 @@ namespace Service
 {
     void ServiceCore::serviceCoreSetup() 
     {
-
-
-       // auto[eventList, numEvents] = eventSubListGet();
-        
-        //eventCore.registerList(serviceQueueHandle, get)
-
-
+        // Register the service with the event core.  
+        eventCore.registerList(serviceQueueHandle, eventSubListGet());
     }
 
 

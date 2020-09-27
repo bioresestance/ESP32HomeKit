@@ -17,10 +17,7 @@ namespace Event
 
     void EventCore::resetList(EventID id) {
         // Get the list for the event id and set all handles to null.
-        eventIdSubList &list = eventSubList[(uint32_t)id];
-        for (QueueHandle_t &handle : list) {
-            handle = nullptr;
-        }
+        eventSubList[(uint32_t)id].clear();
     }
     
     bool EventCore::isQueueRegistered(QueueHandle_t& handle, EventID event) {
@@ -28,7 +25,7 @@ namespace Event
         eventIdSubList& list = eventSubList[static_cast<uint16_t>(event)];
 
         // search through the list to see if the queue is registered with the event.
-        for(QueueHandle_t& listHandle : list) {
+        for(auto& listHandle : list) {
             if(listHandle == handle) return true;
         }
 
@@ -38,7 +35,7 @@ namespace Event
     bool EventCore::getNextFreeIndex(eventIdSubList& list, uint16_t* idx) {
 
         uint16_t i = 0;
-        for(QueueHandle_t& handle : list) {
+        for(auto& handle : list) {
             // Search the array for the first available spot.
             if(handle == nullptr) {
                 *idx = i;
@@ -51,24 +48,20 @@ namespace Event
     
     bool EventCore::addQueuetoList(QueueHandle_t& handle, EventID event) {
 
+        bool retVal = false;
         eventIdSubList& list = eventSubList[static_cast<uint16_t>(event)];
 
         // First ensure the queue is not already in the list.
         if(!isQueueRegistered(handle, event)) {
-                uint16_t idx = 0;
-                if(getNextFreeIndex(list, &idx)) {
-                    list[idx] = handle;
-                    return true;
-                } else {
-                    return false;
-                }
-        } else {
-            return false;
-        }
+               list.push_back(&list);
+               retVal = true;
+        } 
+
+        return retVal;
     }
     
 
-    bool EventCore::registerList(QueueHandle_t& handle, EventID* eventIdList, uint16_t numEventId) {
+    bool EventCore::registerList(QueueHandle_t& handle, const EventID* eventIdList, uint8_t numEventId) {
         assert(handle);
         assert(eventIdList);
         assert(!(eventIdList == nullptr and numEventId > 0)); // If list is null, but number indicates not 0.
@@ -79,6 +72,13 @@ namespace Event
             addQueuetoList(handle, id);
         }
         return true;
+    }
+    
+    bool EventCore::registerList(QueueHandle_t& handle, EventIDList& eventIdList) 
+    {
+        assert(handle);
+        return registerList(handle, eventIdList.getList(), eventIdList.getListSize());
+
     }
     
 

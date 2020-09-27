@@ -1,13 +1,7 @@
-
-#include <iostream>
 #include <services/servicesCore.h>
 #include <esp_log.h>
-#include "string.h"
 
 #include <events/eventCore.h>
-
-using namespace std;
-
 
 
 // static Service testServices[] = {
@@ -18,10 +12,6 @@ using namespace std;
 
 extern "C" void app_main() {
   
-    
-    cout << "Starting Test!" << endl;
-
-
     while(1) {
         vTaskDelay(1000);
     }

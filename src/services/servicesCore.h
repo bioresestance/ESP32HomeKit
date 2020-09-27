@@ -73,7 +73,7 @@ namespace Service
          * 
          * @return A pair type containing a list of event id's and the number of those id's
          */
-        virtual std::pair<Event::EventID*, uint16_t> eventSubListGet() = 0;
+        virtual Event::EventIDList& eventSubListGet() = 0;
 
 
 

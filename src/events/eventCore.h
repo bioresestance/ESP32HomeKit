@@ -4,6 +4,7 @@
 #include <freertos/queue.h>
 #include <freertosTask.h>
 #include <events/eventID.h>
+#include <list>
 #include <array>
 
 namespace Event
@@ -31,9 +32,9 @@ namespace Event
 
 
     /**
-     * @brief Array of queue handles to hold a list of subcribers to a Event ID.
+     * @brief List of queue handles to hold a list of subcribers to a Event ID.
      */
-    typedef std::array<QueueHandle_t, MAX_EVENT_SUBS> eventIdSubList;
+    typedef std::list<QueueHandle_t> eventIdSubList;
 
 
 
@@ -125,9 +126,16 @@ namespace Event
          * @param numEventId  Number of event ID's in the list.
          * @return Whether the registration was successful or not. 
          */
-        bool registerList(QueueHandle_t& handle, EventID* eventIdList, uint16_t numEventId);
+        bool registerList(QueueHandle_t& handle, const EventID* eventIdList, uint8_t numEventId);
 
-         bool registerList(QueueHandle_t& handle, EventID* eventIdList, uint16_t numEventId);
+ /**
+         * @brief Registers a list of Event ID's to a queue.
+         * 
+         * @param handle Handle to the queue to register the list to.
+         * @param eventIdList list of Event ID's.
+         * @return Whether the registration was successful or not. 
+         */
+        bool registerList(QueueHandle_t& handle, EventIDList& eventIdList);
 
         /**
          * @brief Post an Event with a payload.
