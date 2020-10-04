@@ -89,24 +89,21 @@ namespace Event
     
     bool EventCore::postEvent(EventID event, void* payload, uint16_t payloadLength) {
         
-        assert(payload);
         assert(event < EventID::NUM_EVENTS);
+        // See if null pointer when there should be something.
+        assert(!(payload == nullptr && payloadLength > 0));
 
         // Get the list of subscribers to the given event.
         eventIdSubList& list = eventSubList[static_cast<uint16_t>(event)];
 
         // See if there are any subscribers to post to.
         if(list.size() > 0) {
+            //! Item to hold the event to be posted to services.
+            eventItem *item = new eventItem(event, payload, payloadLength, list.size());
 
-            eventItem item;
-            // Get out chunk of memory for the new event.
-            item.msg = (eventMessage*)malloc(sizeof(eventMessage) + payloadLength);
-            // Copy the payload to the event.
-            memcpy(item.msg->eventData, payload, payloadLength);
-            // Fill in the Message header.
-            item.msg->eventID = event;
-            item.msg->eventDataLength = payloadLength;
-            item.msg->eventTime = freeRTOS::Task::getCurrentTimeMs();
+
+            eventItemList.push_back(item);
+
 
             for(auto& serviceQ : list) {
 

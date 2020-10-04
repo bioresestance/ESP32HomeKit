@@ -23,13 +23,28 @@ namespace Event
         uint32_t eventTime;         //!< Unix timestamp of the event.
         uint32_t eventDataLength;   //!< Length of the event data. 0 for no data.
         void *eventData;            //!< Optional data to attach to the event.
+
+        eventMessage(EventID eventId, void* message, uint16_t messageLength) {
+
+            eventID = eventId;
+            eventTime = freeRTOS::Task::getCurrentTimeMs();
+            eventDataLength = messageLength;
+
+            if(eventDataLength > 0) {
+                // Allocate the block of memory to use with the message.
+                eventData = malloc(messageLength);  
+                memcpy(eventData, message, messageLength);
+            } else {
+                eventData = nullptr;
+            } 
+        }
+
+        ~eventMessage() {
+            if(eventData != nullptr) {
+                free(eventData);
+            }  
+        }
     };
-
-    // struct eventRegList {
-    //     EventID* eventIDs;          //!< Pointer to a list 
-    //     uint16_t numEventIDs;
-    // };
-
 
     /**
      * @brief List of queue handles to hold a list of subcribers to a Event ID.
@@ -73,18 +88,47 @@ namespace Event
          * @brief Used to store an event item and all the subscribers to it.
          */
         struct eventItem {
-            eventMessage *msg;      //!< Pointer to allocated memory to hold the message.
             uint16_t numSubscribers;//!< Number of subscribers to the event.
             uint16_t numReleased;   //!< Number of subscriber who have released the event.
+            eventMessage *msg;      //!< Pointer to allocated memory to hold the message.
 
-            eventItem() : numSubscribers(0), numReleased(0) {}
+            eventItem(EventID eventId, void* message, uint16_t msgLength, uint16_t numSub) 
+            :   numSubscribers(numSub), numReleased(0) 
+            {
+                // Create the message from provided parameters.
+                msg = new eventMessage(eventId, message, msgLength);
+            }
+
+            ~eventItem() 
+            {
+                // Free the memory for the message.
+                delete msg;
+            }
+
+            /**
+             * @brief Releases a subscriber from the list.
+             */
+            void subscriberRelease() {
+                numReleased++;
+            }
+
+            /**
+             * @brief Determines if the item can be released.
+             * 
+             * @return true  If all subscribers have released the item.
+             * @return false If there is at least one subscriber not released.
+             */
+            bool isReleased() {
+                return (numReleased >= numSubscribers);
+            }
+
         };
 
         //! Array of Vectors that hold a list of who is subscribed to any Event. Every Event ID gets its own vector. This vector contains all queues subscribed to that ID.
         std::array<eventIdSubList, (size_t)EventID::NUM_EVENTS> eventSubList;
 
         //! List of event items currently in use.
-        std::list<eventItem> eventItemList;
+        std::list<eventItem*> eventItemList;
 
         /**
          * @brief Creates an event queue for a service to use.

@@ -17,14 +17,14 @@ namespace Service
         // Run the services setup routine.
         initialize();
 
-        Event::eventMessage message;
+        Event::eventMessage *message = nullptr;
         while (true) {
 
             // Check if there are any messages for this service.
-            if(eventCore.getEvent( serviceQueueHandle,  &message, getNextTimeout())) {
+            if(eventCore.getEvent( serviceQueueHandle,  message, getNextTimeout())) {
                 // If there is, let the service handle it. Make sure to clean up memory too.
-                handleEvent(message);
-                eventCore.disposeEvent(&message);
+               // handleEvent(message);
+                eventCore.disposeEvent(message);
             } else {
                 handleTimeout();
             }
