@@ -43,6 +43,8 @@ namespace Service
         ServiceCore(const char *serviceName, uint32_t stackSize, uint16_t priority)
             : freeRTOS::Task(serviceName, stackSize, priority)
         {
+            
+
             // Start the task.
             this->start();
         }

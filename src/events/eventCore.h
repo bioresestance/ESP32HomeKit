@@ -69,8 +69,29 @@ namespace Event
 
     private:
 
+        /**
+         * @brief Used to store an event item and all the subscribers to it.
+         */
+        struct eventItem {
+            eventMessage *msg;      //!< Pointer to allocated memory to hold the message.
+            uint16_t numSubscribers;//!< Number of subscribers to the event.
+            uint16_t numReleased;   //!< Number of subscriber who have released the event.
+
+            eventItem() : numSubscribers(0), numReleased(0) {}
+        };
+
         //! Array of Vectors that hold a list of who is subscribed to any Event. Every Event ID gets its own vector. This vector contains all queues subscribed to that ID.
         std::array<eventIdSubList, (size_t)EventID::NUM_EVENTS> eventSubList;
+
+        //! List of event items currently in use.
+        std::list<eventItem> eventItemList;
+
+        /**
+         * @brief Creates an event queue for a service to use.
+         * 
+         * @return QueueHandle_t Queue handle for the service to use.
+         */
+        QueueHandle_t createEventQueue();
 
 
         /**

@@ -6,6 +6,12 @@ namespace Event
 
     EventCore::EventCore() {
         resetList();
+        eventItemList.clear();
+    }
+    
+    QueueHandle_t EventCore::createEventQueue() 
+    {
+        return xQueueCreate(20, sizeof(eventItem*));
     }
 
     void EventCore::resetList() {
@@ -79,6 +85,41 @@ namespace Event
         assert(handle);
         return registerList(handle, eventIdList.getList(), eventIdList.getListSize());
 
+    }
+    
+    bool EventCore::postEvent(EventID event, void* payload, uint16_t payloadLength) {
+        
+        assert(payload);
+        assert(event < EventID::NUM_EVENTS);
+
+        // Get the list of subscribers to the given event.
+        eventIdSubList& list = eventSubList[static_cast<uint16_t>(event)];
+
+        // See if there are any subscribers to post to.
+        if(list.size() > 0) {
+
+            eventItem item;
+            // Get out chunk of memory for the new event.
+            item.msg = (eventMessage*)malloc(sizeof(eventMessage) + payloadLength);
+            // Copy the payload to the event.
+            memcpy(item.msg->eventData, payload, payloadLength);
+            // Fill in the Message header.
+            item.msg->eventID = event;
+            item.msg->eventDataLength = payloadLength;
+            item.msg->eventTime = freeRTOS::Task::getCurrentTimeMs();
+
+            for(auto& serviceQ : list) {
+
+                if(xQueueSend(serviceQ, &item, 0) == pdTRUE) {
+
+                }
+
+            }
+
+            return true;
+        } else {
+            return false;
+        }
     }
     
 

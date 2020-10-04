@@ -21,7 +21,7 @@ namespace Service
         while (true) {
 
             // Check if there are any messages for this service.
-            if(eventCore.getEvent( serviceQueueHandle,  &message, 1000)) {
+            if(eventCore.getEvent( serviceQueueHandle,  &message, getNextTimeout())) {
                 // If there is, let the service handle it. Make sure to clean up memory too.
                 handleEvent(message);
                 eventCore.disposeEvent(&message);
