@@ -24,17 +24,17 @@ namespace Event
         uint32_t eventDataLength;   //!< Length of the event data. 0 for no data.
         void *eventData;            //!< Optional data to attach to the event.
 
-        eventMessage(EventID eventId, void* message, uint16_t messageLength) {
-
-            eventID = eventId;
-            eventTime = freeRTOS::Task::getCurrentTimeMs();
-            eventDataLength = messageLength;
-
+        eventMessage(EventID eventId, void* message, uint16_t messageLength) 
+        :eventID(eventId),
+        eventTime(freeRTOS::Task::getCurrentTimeMs()),
+        eventDataLength(messageLength)
+        {
             if(eventDataLength > 0) {
                 // Allocate the block of memory to use with the message.
-                eventData = malloc(messageLength);  
+                eventData = malloc(eventDataLength);
                 memcpy(eventData, message, messageLength);
             } else {
+                // No payload, ensure its set to null.
                 eventData = nullptr;
             } 
         }
@@ -181,6 +181,18 @@ namespace Event
          */
         bool addQueuetoList(QueueHandle_t& handle, EventID event);
 
+        /**
+         * @brief Removes a subscriber of a posted Event Item.
+         * 
+         *  Removes a subscriber from a event item. If all subs are done
+         *  the item will be removed from the master list and deleted.
+         * 
+         * @param item Event Item to remove subscriber from.
+         * @return true If the item is still valid.
+         * @return false If the item has been deleted
+         */
+        bool removeEventItemSubscriber(eventItem* item);
+
     public:
 
         /**
@@ -193,7 +205,7 @@ namespace Event
          */
         bool registerList(QueueHandle_t& handle, const EventID* eventIdList, uint8_t numEventId);
 
- /**
+        /**
          * @brief Registers a list of Event ID's to a queue.
          * 
          * @param handle Handle to the queue to register the list to.
@@ -235,7 +247,7 @@ namespace Event
          * @return true If a event was received in the wait period.
          * @return false If there was no event before the wait period was over.
          */
-        bool getEvent(QueueHandle_t& queue, const eventMessage * eventMsg, uint32_t msToWait); 
+        bool getEvent(QueueHandle_t& queue, const eventMessage *const eventMsg, uint32_t msToWait); 
 
         /**
          * @brief Properly disposes of the memory of an event message.

@@ -66,6 +66,16 @@ namespace Event
         return retVal;
     }
     
+    bool EventCore::removeEventItemSubscriber(eventItem* item) {
+        item->subscriberRelease();
+        if(item->isReleased()) {
+            eventItemList.remove(item);
+            delete item;
+            return false;
+        }    
+        return true;
+    }
+    
 
     bool EventCore::registerList(QueueHandle_t& handle, const EventID* eventIdList, uint8_t numEventId) {
         assert(handle);
@@ -84,7 +94,6 @@ namespace Event
     {
         assert(handle);
         return registerList(handle, eventIdList.getList(), eventIdList.getListSize());
-
     }
     
     bool EventCore::postEvent(EventID event, void* payload, uint16_t payloadLength) {
@@ -98,26 +107,37 @@ namespace Event
 
         // See if there are any subscribers to post to.
         if(list.size() > 0) {
-            //! Item to hold the event to be posted to services.
+            //! Create our new item that contains the event.
             eventItem *item = new eventItem(event, payload, payloadLength, list.size());
-
-
+            
+            // Add the item to the list to keep track of all created items.
             eventItemList.push_back(item);
 
-
+            // Send the item to all queues subscribed to the event.
             for(auto& serviceQ : list) {
-
-                if(xQueueSend(serviceQ, &item, 0) == pdTRUE) {
-
+                if(xQueueSend(serviceQ, &item, 0) == pdFALSE) {
+                    // Failed to send to queue, remove subscriber.
+                    removeEventItemSubscriber(item);
                 }
-
             }
-
-            return true;
         } else {
             return false;
         }
+        return true;
     }
+    
+    bool EventCore::postEvent(EventID event) 
+    {
+        return postEvent(event, nullptr, 0);
+    }
+    
+    // bool EventCore::getEvent(QueueHandle_t& queue, const eventMessage *const eventMsg, uint32_t msToWait) 
+    // {
+    //     eventItem *item;
+    //     if(xQueueReceive(queue, &item, msToWait) == pdTRUE) {
+
+    //     }
+    // }
     
 
 } // namespace event
