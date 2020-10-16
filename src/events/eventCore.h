@@ -39,6 +39,16 @@ namespace Event
             } 
         }
 
+        // Copy Constructor.
+        eventMessage(const eventMessage& msg) 
+        : eventID(msg.eventID), eventTime(msg.eventTime), eventDataLength(msg.eventDataLength), eventData(nullptr) {
+            if( eventDataLength > 0 ) {
+                // create a new block of memory and make a copy of the event data.
+                eventData = malloc(eventDataLength);
+                memcpy(eventData, msg.eventData, eventDataLength);
+            }            
+        }
+
         ~eventMessage() {
             if(eventData != nullptr) {
                 free(eventData);
@@ -239,26 +249,18 @@ namespace Event
 
 
         /**
-         * @brief Gets any available Event for the service.
+         * @brief Gets any available events for the service.
+         * 
+         *  Waits up to the provided amount of time for a event to arrive in the queue.
+         *  When/if an event is available, a copy of the message is returned.
          * 
          * @param queue The queue to check for messages.
-         * @param eventMsg Holds the next available event message, if available. 
+         * @param eventMsg Pointer to a event msg object.  
          * @param msToWait Max number of ms to wait for a new event.
          * @return true If a event was received in the wait period.
          * @return false If there was no event before the wait period was over.
          */
-        bool getEvent(QueueHandle_t& queue, const eventMessage *const eventMsg, uint32_t msToWait); 
-
-        /**
-         * @brief Properly disposes of the memory of an event message.
-         * 
-         *  \note This must **Always** be called after a getEvent call to ensure no memory leaks.
-         * 
-         * @param eventMsg 
-         */
-        void disposeEvent(const eventMessage * eventMsg);
-
- 
+        bool getEvent(QueueHandle_t& queue, eventMessage* eventMsg, uint32_t msToWait);  
 
     };
 

@@ -23,8 +23,8 @@ namespace Service
             // Check if there are any messages for this service.
             if(eventCore.getEvent( serviceQueueHandle,  message, getNextTimeout())) {
                 // If there is, let the service handle it. Make sure to clean up memory too.
-               // handleEvent(message);
-                eventCore.disposeEvent(message);
+                handleEvent(*message);
+                delete message;
             } else {
                 handleTimeout();
             }

@@ -131,13 +131,18 @@ namespace Event
         return postEvent(event, nullptr, 0);
     }
     
-    // bool EventCore::getEvent(QueueHandle_t& queue, const eventMessage *const eventMsg, uint32_t msToWait) 
-    // {
-    //     eventItem *item;
-    //     if(xQueueReceive(queue, &item, msToWait) == pdTRUE) {
+    bool EventCore::getEvent(QueueHandle_t& queue, eventMessage* eventMsg, uint32_t msToWait) 
+    {
+        assert(eventMsg != nullptr);
 
-    //     }
-    // }
-    
+        eventItem *item;
+        if(xQueueReceive(queue, &item, msToWait) == pdTRUE) {
+
+            // MAke a copy of the event to be returned.
+            eventMsg = new eventMessage(*item->msg);
+            return true;
+        }
+        return false;
+    }    
 
 } // namespace event
