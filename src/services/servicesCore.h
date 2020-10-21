@@ -17,7 +17,7 @@ namespace Service
     class ServiceCore : freeRTOS::Task
     {
 
-    private:
+    protected:
         //! The queue handle for the service. Used to access all events the service subscribes to.
         QueueHandle_t serviceQueueHandle;
         //! Reference to the Event core. Used to post and get events.
@@ -43,8 +43,6 @@ namespace Service
         ServiceCore(const char *serviceName, uint32_t stackSize, uint16_t priority)
             : freeRTOS::Task(serviceName, stackSize, priority)
         {
-            
-
             // Start the task.
             this->start();
         }

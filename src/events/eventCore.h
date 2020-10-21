@@ -5,13 +5,11 @@
 #include <freertosTask.h>
 #include <events/eventID.h>
 #include <list>
+#include <vector>
 #include <array>
 
 namespace Event
 {
-    //! Defines the max number of subscribers each event ID can have. 
-    #define MAX_EVENT_SUBS      (10)
-
 
     /**
      * @brief Structure of a event message.
@@ -59,9 +57,7 @@ namespace Event
     /**
      * @brief List of queue handles to hold a list of subcribers to a Event ID.
      */
-    typedef std::list<QueueHandle_t> eventIdSubList;
-
-
+    typedef std::vector<QueueHandle_t> eventIdSubList;
 
 
     /**
@@ -140,13 +136,6 @@ namespace Event
         //! List of event items currently in use.
         std::list<eventItem*> eventItemList;
 
-        /**
-         * @brief Creates an event queue for a service to use.
-         * 
-         * @return QueueHandle_t Queue handle for the service to use.
-         */
-        QueueHandle_t createEventQueue();
-
 
         /**
          * @brief Resets the entire Event list for each Event ID.
@@ -169,7 +158,7 @@ namespace Event
          * @return true Handle already registered.
          * @return false Handle not registered.
          */
-        bool isQueueRegistered(QueueHandle_t& handle, EventID event); 
+        bool isQueueRegistered(QueueHandle_t handle, EventID event); 
 
         /**
          * @brief Get the Next Free Index in the provided list.
@@ -189,7 +178,7 @@ namespace Event
          * @return true Handle was added.
          * @return false Handle was not added. Either no room, or already exists in list.
          */
-        bool addQueuetoList(QueueHandle_t& handle, EventID event);
+        bool addQueuetoList(QueueHandle_t handle, EventID event);
 
         /**
          * @brief Removes a subscriber of a posted Event Item.
@@ -205,6 +194,13 @@ namespace Event
 
     public:
 
+                /**
+         * @brief Creates an event queue for a service to use.
+         * 
+         * @return QueueHandle_t Queue handle for the service to use.
+         */
+        QueueHandle_t createEventQueue();
+        
         /**
          * @brief Registers a list of Event ID's to a queue.
          * 
@@ -213,7 +209,7 @@ namespace Event
          * @param numEventId  Number of event ID's in the list.
          * @return Whether the registration was successful or not. 
          */
-        bool registerList(QueueHandle_t& handle, const EventID* eventIdList, uint8_t numEventId);
+        bool registerList(QueueHandle_t handle, const EventID* eventIdList, uint8_t numEventId);
 
         /**
          * @brief Registers a list of Event ID's to a queue.
@@ -222,7 +218,7 @@ namespace Event
          * @param eventIdList list of Event ID's.
          * @return Whether the registration was successful or not. 
          */
-        bool registerList(QueueHandle_t& handle, EventIDList& eventIdList);
+        bool registerList(QueueHandle_t handle, EventIDList& eventIdList);
 
         /**
          * @brief Post an Event with a payload.
@@ -255,12 +251,12 @@ namespace Event
          *  When/if an event is available, a copy of the message is returned.
          * 
          * @param queue The queue to check for messages.
-         * @param eventMsg Pointer to a event msg object.  
+         * @param eventMsg Pointer to a event msg pointer. New message stored at pointer location.  
          * @param msToWait Max number of ms to wait for a new event.
          * @return true If a event was received in the wait period.
          * @return false If there was no event before the wait period was over.
          */
-        bool getEvent(QueueHandle_t& queue, eventMessage* eventMsg, uint32_t msToWait);  
+        bool getEvent(QueueHandle_t queue, eventMessage** eventMsg, uint32_t msToWait);
 
     };
 

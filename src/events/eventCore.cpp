@@ -26,7 +26,7 @@ namespace Event
         eventSubList[(uint32_t)id].clear();
     }
     
-    bool EventCore::isQueueRegistered(QueueHandle_t& handle, EventID event) {
+    bool EventCore::isQueueRegistered(QueueHandle_t handle, EventID event) {
         // Gets the list for the given event.
         eventIdSubList& list = eventSubList[static_cast<uint16_t>(event)];
 
@@ -38,28 +38,15 @@ namespace Event
         return false;
     }
     
-    bool EventCore::getNextFreeIndex(eventIdSubList& list, uint16_t* idx) {
-
-        uint16_t i = 0;
-        for(auto& handle : list) {
-            // Search the array for the first available spot.
-            if(handle == nullptr) {
-                *idx = i;
-                return true;
-            }
-            i++;
-        }
-        return false;        
-    }
     
-    bool EventCore::addQueuetoList(QueueHandle_t& handle, EventID event) {
+    bool EventCore::addQueuetoList(QueueHandle_t handle, EventID event) {
 
         bool retVal = false;
         eventIdSubList& list = eventSubList[static_cast<uint16_t>(event)];
 
         // First ensure the queue is not already in the list.
         if(!isQueueRegistered(handle, event)) {
-               list.push_back(&list);
+               list.push_back(&handle);
                retVal = true;
         } 
 
@@ -68,6 +55,7 @@ namespace Event
     
     bool EventCore::removeEventItemSubscriber(eventItem* item) {
         item->subscriberRelease();
+        // If all have released, then free memory.
         if(item->isReleased()) {
             eventItemList.remove(item);
             delete item;
@@ -77,9 +65,9 @@ namespace Event
     }
     
 
-    bool EventCore::registerList(QueueHandle_t& handle, const EventID* eventIdList, uint8_t numEventId) {
+    bool EventCore::registerList(QueueHandle_t handle, const EventID* eventIdList, uint8_t numEventId) {
         assert(handle);
-        assert(eventIdList);
+       // assert(eventIdList);
         assert(!(eventIdList == nullptr and numEventId > 0)); // If list is null, but number indicates not 0.
 
 
@@ -90,7 +78,7 @@ namespace Event
         return true;
     }
     
-    bool EventCore::registerList(QueueHandle_t& handle, EventIDList& eventIdList) 
+    bool EventCore::registerList(QueueHandle_t handle, EventIDList& eventIdList)
     {
         assert(handle);
         return registerList(handle, eventIdList.getList(), eventIdList.getListSize());
@@ -99,22 +87,24 @@ namespace Event
     bool EventCore::postEvent(EventID event, void* payload, uint16_t payloadLength) {
         
         assert(event < EventID::NUM_EVENTS);
-        // See if null pointer when there should be something.
         assert(!(payload == nullptr && payloadLength > 0));
 
         // Get the list of subscribers to the given event.
-        eventIdSubList& list = eventSubList[static_cast<uint16_t>(event)];
+        eventIdSubList* list = &eventSubList[static_cast<uint16_t>(event)];
 
         // See if there are any subscribers to post to.
-        if(list.size() > 0) {
+        if(list->size() > 0) {
             //! Create our new item that contains the event.
-            eventItem *item = new eventItem(event, payload, payloadLength, list.size());
+            eventItem *item = new eventItem(event, payload, payloadLength, list->size());
+            
+            assert(item != nullptr);
             
             // Add the item to the list to keep track of all created items.
             eventItemList.push_back(item);
 
             // Send the item to all queues subscribed to the event.
-            for(auto& serviceQ : list) {
+            for(auto serviceQ : *list) {
+                assert(serviceQ != nullptr);
                 if(xQueueSend(serviceQ, &item, 0) == pdFALSE) {
                     // Failed to send to queue, remove subscriber.
                     removeEventItemSubscriber(item);
@@ -131,15 +121,17 @@ namespace Event
         return postEvent(event, nullptr, 0);
     }
     
-    bool EventCore::getEvent(QueueHandle_t& queue, eventMessage* eventMsg, uint32_t msToWait) 
+    bool EventCore::getEvent(QueueHandle_t queue, eventMessage** eventMsg, uint32_t msToWait) 
     {
         assert(eventMsg != nullptr);
-
         eventItem *item;
+        // Wait for item to be received.
         if(xQueueReceive(queue, &item, msToWait) == pdTRUE) {
 
-            // MAke a copy of the event to be returned.
-            eventMsg = new eventMessage(*item->msg);
+            // Make a copy of the event to be returned.
+            *eventMsg = new eventMessage(*item->msg);
+            // Remove subscriber from the main list.
+            removeEventItemSubscriber(item);
             return true;
         }
         return false;

@@ -20,7 +20,7 @@ namespace Event {
         NUM_EVENTS          //!< Always at the end of the enum. Used to indicate the number of event ID's.
     };
 
-        struct EventIDList
+    struct EventIDList
     {
 
     private:
@@ -34,7 +34,7 @@ namespace Event {
          * @param list List of event IDs to add to object.
          * @param num_in_list Number of event IDs in list. 
          */
-        EventIDList(EventID *list, uint8_t num_in_list)
+        EventIDList(EventID list[], uint8_t num_in_list)
         {
 
             _num_in_list = num_in_list;
@@ -42,6 +42,11 @@ namespace Event {
             // Create new list and copy to local buffer.
             _list = new EventID[_num_in_list];
             memcpy(_list, list, sizeof(EventID[_num_in_list]));
+        }
+
+        EventIDList() {
+            _num_in_list = 0;
+            _list = nullptr;
         }
 
         /**

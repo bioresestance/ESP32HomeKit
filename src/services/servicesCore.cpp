@@ -4,6 +4,8 @@ namespace Service
 {
     void ServiceCore::serviceCoreSetup() 
     {
+
+        serviceQueueHandle = eventCore.createEventQueue();
         // Register the service with the event core.  
         eventCore.registerList(serviceQueueHandle, eventSubListGet());
     }
@@ -21,14 +23,16 @@ namespace Service
         while (true) {
 
             // Check if there are any messages for this service.
-            if(eventCore.getEvent( serviceQueueHandle,  message, getNextTimeout())) {
-                // If there is, let the service handle it. Make sure to clean up memory too.
+            if(eventCore.getEvent( serviceQueueHandle,  &message, getNextTimeout())) {
+                // If there is, let the service handle it.
                 handleEvent(*message);
+                // Clean up memory after its used.
                 delete message;
             } else {
+                // Timeout event handler.
                 handleTimeout();
             }
-
+            // Generic loop handler.
             handleLoop();
         }
     }
