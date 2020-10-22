@@ -90,12 +90,12 @@ namespace Event
         assert(!(payload == nullptr && payloadLength > 0));
 
         // Get the list of subscribers to the given event.
-        eventIdSubList* list = &eventSubList[static_cast<uint16_t>(event)];
+        eventIdSubList& list = eventSubList[static_cast<uint16_t>(event)];
 
         // See if there are any subscribers to post to.
-        if(list->size() > 0) {
+        if(list.size() > 0) {
             //! Create our new item that contains the event.
-            eventItem *item = new eventItem(event, payload, payloadLength, list->size());
+            eventItem *item = new eventItem(event, payload, payloadLength, list.size());
             
             assert(item != nullptr);
             
@@ -103,8 +103,7 @@ namespace Event
             eventItemList.push_back(item);
 
             // Send the item to all queues subscribed to the event.
-            for(auto serviceQ : *list) {
-                assert(serviceQ != nullptr);
+            for(auto serviceQ : list) {
                 if(xQueueSend(serviceQ, &item, 0) == pdFALSE) {
                     // Failed to send to queue, remove subscriber.
                     removeEventItemSubscriber(item);
