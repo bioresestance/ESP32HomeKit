@@ -104,6 +104,7 @@ namespace Event
                 // Create the message from provided parameters.
                 msg = new eventMessage(eventId, message, msgLength);
             }
+            eventItem() = default;
 
             ~eventItem() 
             {

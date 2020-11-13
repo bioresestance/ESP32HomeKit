@@ -17,7 +17,7 @@ namespace Service {
         TestService() 
         : ServiceCore("TestService")
         {
-            nextTimeout = freeRTOS::Task::getTickCount() + 100;
+            nextTimeout = freeRTOS::Task::getTickCount() + 50;
             ESP_LOGI(TAG, "Created Test Service");
         }
 
@@ -52,8 +52,11 @@ namespace Service {
         }
 
         void handleTimeout() override {
-            nextTimeout = freeRTOS::Task::getTickCount() + 100;
-            eventCore.postEvent(Event::EventID::KEEP_ALIVE);
+            nextTimeout = freeRTOS::Task::getTickCount() + 50;
+
+            char test[] = "This is a test";
+
+            eventCore.postEvent(Event::EventID::KEEP_ALIVE, test, sizeof(test));
             ESP_LOGI(TAG, "Timeout");
         }
 

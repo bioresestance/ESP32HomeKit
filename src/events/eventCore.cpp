@@ -1,17 +1,23 @@
 #include <events/eventCore.h>
-
+#include "esp_log.h"
 
 namespace Event
 {
 
+    static const char* TAG= "EVENTCORE";
+    static QueueHandle_t testHandle;
+
     EventCore::EventCore() {
+        ESP_LOGI(TAG, "Event Core Init");
         resetList();
         eventItemList.clear();
+        testHandle = xQueueCreate(20, sizeof(eventItem));
     }
     
     QueueHandle_t EventCore::createEventQueue() 
     {
-        return xQueueCreate(20, sizeof(eventItem*));
+        ESP_LOGI(TAG, "Creating new Event Queue");
+        return xQueueCreate(20, sizeof(eventItem));
     }
 
     void EventCore::resetList() {
@@ -70,7 +76,7 @@ namespace Event
        // assert(eventIdList);
         assert(!(eventIdList == nullptr and numEventId > 0)); // If list is null, but number indicates not 0.
 
-
+        ESP_LOGI(TAG, "Adding Event list to Queue");
         for(uint16_t idx = 0; idx < numEventId; idx++) {
             EventID id = eventIdList[idx];
             addQueuetoList(handle, id);
@@ -97,16 +103,15 @@ namespace Event
             //! Create our new item that contains the event.
             eventItem *item = new eventItem(event, payload, payloadLength, list.size());
             
-            assert(item != nullptr);
-            
             // Add the item to the list to keep track of all created items.
-            eventItemList.push_back(item);
+            //eventItemList.push_back(item);
 
             // Send the item to all queues subscribed to the event.
-            for(auto serviceQ : list) {
-                if(xQueueSend(serviceQ, &item, 0) == pdFALSE) {
+            for(QueueHandle_t serviceQ : list) {
+                assert(serviceQ);
+                if(xQueueSend(testHandle, item, 0) == pdFALSE) {
                     // Failed to send to queue, remove subscriber.
-                    removeEventItemSubscriber(item);
+                    //removeEventItemSubscriber(item);
                 }
             }
         } else {
@@ -123,14 +128,15 @@ namespace Event
     bool EventCore::getEvent(QueueHandle_t queue, eventMessage** eventMsg, uint32_t msToWait) 
     {
         assert(eventMsg != nullptr);
-        eventItem *item;
+        eventItem item;
+   
         // Wait for item to be received.
-        if(xQueueReceive(queue, &item, msToWait) == pdTRUE) {
+        if(xQueueReceive(testHandle, &item, msToWait) == pdTRUE) {
 
             // Make a copy of the event to be returned.
-            *eventMsg = new eventMessage(*item->msg);
+            *eventMsg = new eventMessage(item.msg);
             // Remove subscriber from the main list.
-            removeEventItemSubscriber(item);
+            removeEventItemSubscriber(&item);
             return true;
         }
         return false;
